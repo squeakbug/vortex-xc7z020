@@ -19,6 +19,7 @@ if { $::argc != 4 } {
 
 # Set the project name
 set project_name "project_1"
+set bdname "design_1"
 
 set top_module [lindex $::argv 0]
 set device_part [lindex $::argv 1]
@@ -43,12 +44,40 @@ if {[info exists ::env(MAX_JOBS)]} {
   set num_jobs 0
 }
 
+proc puts_list {lst cs} {
+  for {set startIdx 0} {$startIdx<[llength $lst]} {incr startIdx $cs} {
+      set endIdx [expr {$startIdx+$cs-1}]
+      puts [lrange $lst $startIdx $endIdx]
+  }
+}
+
 proc run_setup {} {
   global project_name
   global top_module device_part vcs_file xdc_file
   global script_dir tool_dir
   global num_jobs
   global argv argc ;# Using global system variables: argv and argc
+
+  # create block design
+  create_bd_design $bdname
+  open_bd_design $project_name/$project_name.srcs/sources_1/bd/$bdname/$bdname.bd
+  puts "Creating block design = $bdname"
+
+  # add processing system
+  create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0
+  source ${script_dir}/project_ps7_setup.tcl
+  set_ps_config processing_system7_0
+  source ${script_dir}/project_pl_setup.tcl
+  regenerate_bd_layout
+  validate_bd_design
+  save_bd_design
+
+  # make HDL wrapper for processing system
+  make_wrapper -files [get_files $project_name/$project_name.srcs/sources_1/bd/$bdname/$bdname.bd] -top
+  add_files -norecurse [glob -nocomplain $project_name/$project_name.gen/sources_1/bd/$bdname/hdl/*.v]
+  append bdWrapperName $bdname "_wrapper"
+  puts $bdWrapperName
+  set_property top $bdWrapperName [current_fileset]
 
   # create fpu ip
   if {[info exists ::env(FPU_IP)]} {
@@ -65,9 +94,9 @@ proc run_setup {} {
   set vincludes_list [lindex $vlist 1]
   set vdefines_list  [lindex $vlist 2]
 
-  #puts $vsources_list
-  #puts $vincludes_list
-  #puts $vdefines_list
+  # puts_list $vsources_list 1
+  # puts_list $vincludes_list 1
+  # puts_list $vdefines_list 1
   # Create project
   create_project $project_name $project_name -force -part $device_part
 
@@ -120,6 +149,13 @@ proc run_setup {} {
 
 proc run_synthesis {} {
   global num_jobs
+
+  # set added_sources_list [get_files]
+  # puts "Using added_sources_list:"
+  # puts_list $added_sources_list 1
+
+  # report_compile_order
+  # report_compile_order -constraints
 
   if {$num_jobs != 0} {
     launch_runs synth_1 -verbose -jobs $num_jobs
