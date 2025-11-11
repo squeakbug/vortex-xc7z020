@@ -46,7 +46,7 @@ end
   ```
 
 ## 4. Interfaces
-- **with backpressure** use `valid` and `ready` signala:
+- **with backpressure** use `valid` and `ready` signals:
   ```verilog
   interface VX_dispatch_if ();
 

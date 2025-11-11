@@ -86,8 +86,28 @@ module VX_alu_muldiv import VX_gpu_pkg::*; #(
         .clk      (clk),
         .reset    (reset),
         .enable   (mul_ready_in),
-        .data_in  ({mul_valid_in,  execute_if.data.uuid, execute_if.data.wid, execute_if.data.tmask, execute_if.data.PC, execute_if.data.rd, execute_if.data.wb, execute_if.data.pid, execute_if.data.sop, execute_if.data.eop, mul_result_tmp}),
-        .data_out ({mul_valid_out, mul_uuid_out,         mul_wid_out,         mul_tmask_out,         mul_PC_out,         mul_rd_out,         mul_wb_out,         mul_pid_out,         mul_sop_out,         mul_eop_out,         mul_result_out})
+        .data_in  ({mul_valid_in,
+                    execute_if.data.uuid,
+                    execute_if.data.wid,
+                    execute_if.data.tmask,
+                    execute_if.data.PC,
+                    execute_if.data.rd,
+                    execute_if.data.wb,
+                    execute_if.data.pid,
+                    execute_if.data.sop,
+                    execute_if.data.eop,
+                    mul_result_tmp}),
+        .data_out ({mul_valid_out,
+                    mul_uuid_out,
+                    mul_wid_out,
+                    mul_tmask_out,
+                    mul_PC_out,
+                    mul_rd_out,
+                    mul_wb_out,
+                    mul_pid_out,
+                    mul_sop_out,
+                    mul_eop_out,
+                    mul_result_out})
     );
 
     assign mul_ready_in = mul_ready_out || ~mul_valid_out;
@@ -141,7 +161,17 @@ module VX_alu_muldiv import VX_gpu_pkg::*; #(
     reg [TAG_WIDTH+2-1:0] mul_tag_r;
     always @(posedge clk) begin
         if (mul_valid_in && mul_ready_in) begin
-            mul_tag_r <= {execute_if.data.uuid, execute_if.data.wid, execute_if.data.tmask, execute_if.data.PC, execute_if.data.rd, execute_if.data.wb, is_mulh_in, is_alu_w, execute_if.data.pid, execute_if.data.sop, execute_if.data.eop};
+            mul_tag_r <= {execute_if.data.uuid,
+                          execute_if.data.wid,
+                          execute_if.data.tmask,
+                          execute_if.data.PC,
+                          execute_if.data.rd,
+                          execute_if.data.wb,
+                          is_mulh_in,
+                          is_alu_w,
+                          execute_if.data.pid,
+                          execute_if.data.sop,
+                          execute_if.data.eop};
         end
     end
 
@@ -176,8 +206,30 @@ module VX_alu_muldiv import VX_gpu_pkg::*; #(
         .clk      (clk),
         .reset    (reset),
         .enable   (mul_ready_in),
-        .data_in  ({mul_valid_in,  execute_if.data.uuid, execute_if.data.wid, execute_if.data.tmask, execute_if.data.PC, execute_if.data.rd, execute_if.data.wb, execute_if.data.pid, execute_if.data.sop, execute_if.data.eop, is_mulh_in,  is_alu_w}),
-        .data_out ({mul_valid_out, mul_uuid_out,         mul_wid_out,         mul_tmask_out,         mul_PC_out,         mul_rd_out,         mul_wb_out,         mul_pid_out,         mul_sop_out,         mul_eop_out,         is_mulh_out, is_mul_w_out})
+        .data_in  ({mul_valid_in,
+                    execute_if.data.uuid,
+                    execute_if.data.wid,
+                    execute_if.data.tmask,
+                    execute_if.data.PC,
+                    execute_if.data.rd,
+                    execute_if.data.wb,
+                    execute_if.data.pid,
+                    execute_if.data.sop,
+                    execute_if.data.eop,
+                    is_mulh_in,
+                    is_alu_w}),
+        .data_out ({mul_valid_out,
+                    mul_uuid_out,
+                    mul_wid_out,
+                    mul_tmask_out,
+                    mul_PC_out,
+                    mul_rd_out,
+                    mul_wb_out,
+                    mul_pid_out,
+                    mul_sop_out,
+                    mul_eop_out,
+                    is_mulh_out,
+                    is_mul_w_out})
     );
 
     assign mul_ready_in = mul_ready_out || ~mul_valid_out;
@@ -251,8 +303,28 @@ module VX_alu_muldiv import VX_gpu_pkg::*; #(
         .clk(clk),
         .reset    (reset),
         .enable   (div_ready_in),
-        .data_in  ({div_valid_in,  execute_if.data.uuid, execute_if.data.wid, execute_if.data.tmask, execute_if.data.PC, execute_if.data.rd, execute_if.data.wb, execute_if.data.pid, execute_if.data.sop, execute_if.data.eop, div_result_in}),
-        .data_out ({div_valid_out, div_uuid_out,         div_wid_out,         div_tmask_out,         div_PC_out,         div_rd_out,         div_wb_out,         div_pid_out,         div_sop_out,         div_eop_out,         div_result_out})
+        .data_in  ({div_valid_in,
+                    execute_if.data.uuid,
+                    execute_if.data.wid,
+                    execute_if.data.tmask,
+                    execute_if.data.PC,
+                    execute_if.data.rd,
+                    execute_if.data.wb,
+                    execute_if.data.pid,
+                    execute_if.data.sop,
+                    execute_if.data.eop,
+                    div_result_in}),
+        .data_out ({div_valid_out,
+                    div_uuid_out,
+                    div_wid_out,
+                    div_tmask_out,
+                    div_PC_out,
+                    div_rd_out,
+                    div_wb_out,
+                    div_pid_out,
+                    div_sop_out,
+                    div_eop_out,
+                    div_result_out})
     );
 
     assign div_ready_in = div_ready_out || ~div_valid_out;
@@ -300,7 +372,17 @@ module VX_alu_muldiv import VX_gpu_pkg::*; #(
     reg [TAG_WIDTH+2-1:0] div_tag_r;
     always @(posedge clk) begin
         if (div_valid_in && div_ready_in) begin
-            div_tag_r <= {execute_if.data.uuid, execute_if.data.wid, execute_if.data.tmask, execute_if.data.PC, execute_if.data.rd, execute_if.data.wb, is_rem_op, is_alu_w, execute_if.data.pid, execute_if.data.sop, execute_if.data.eop};
+            div_tag_r <= {execute_if.data.uuid,
+                          execute_if.data.wid,
+                          execute_if.data.tmask,
+                          execute_if.data.PC,
+                          execute_if.data.rd,
+                          execute_if.data.wb,
+                          is_rem_op,
+                          is_alu_w,
+                          execute_if.data.pid,
+                          execute_if.data.sop,
+                          execute_if.data.eop};
         end
     end
 
@@ -333,7 +415,16 @@ module VX_alu_muldiv import VX_gpu_pkg::*; #(
         .ready_in  ({div_ready_out, mul_ready_out}),
         .data_in   ({{div_uuid_out, div_wid_out, div_tmask_out, div_PC_out, div_rd_out, div_wb_out, div_pid_out, div_sop_out, div_eop_out, div_result_out},
                      {mul_uuid_out, mul_wid_out, mul_tmask_out, mul_PC_out, mul_rd_out, mul_wb_out, mul_pid_out, mul_sop_out, mul_eop_out, mul_result_out}}),
-        .data_out  ({result_if.data.uuid, result_if.data.wid, result_if.data.tmask, result_if.data.PC, result_if.data.rd, result_if.data.wb, result_if.data.pid, result_if.data.sop, result_if.data.eop, result_if.data.data}),
+        .data_out  ({result_if.data.uuid,
+                     result_if.data.wid,
+                     result_if.data.tmask,
+                     result_if.data.PC,
+                     result_if.data.rd,
+                     result_if.data.wb,
+                     result_if.data.pid,
+                     result_if.data.sop,
+                     result_if.data.eop,
+                     result_if.data.data}),
         .valid_out (result_if.valid),
         .ready_out (result_if.ready),
         `UNUSED_PIN (sel_out)

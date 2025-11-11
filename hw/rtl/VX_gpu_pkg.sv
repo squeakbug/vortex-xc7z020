@@ -20,40 +20,40 @@
 
 package VX_gpu_pkg;
 
-	localparam NC_BITS = `CLOG2(`NUM_CORES);
-	localparam NW_BITS = `CLOG2(`NUM_WARPS);
-	localparam NT_BITS = `CLOG2(`NUM_THREADS);
-	localparam NB_BITS = `CLOG2(`NUM_BARRIERS);
+    localparam NC_BITS = `CLOG2(`NUM_CORES);
+    localparam NW_BITS = `CLOG2(`NUM_WARPS);
+    localparam NT_BITS = `CLOG2(`NUM_THREADS);
+    localparam NB_BITS = `CLOG2(`NUM_BARRIERS);
 
-	localparam NC_WIDTH = `UP(NC_BITS);
-	localparam NW_WIDTH = `UP(NW_BITS);
-	localparam NT_WIDTH = `UP(NT_BITS);
-	localparam NB_WIDTH = `UP(NB_BITS);
+    localparam NC_WIDTH = `UP(NC_BITS);
+    localparam NW_WIDTH = `UP(NW_BITS);
+    localparam NT_WIDTH = `UP(NT_BITS);
+    localparam NB_WIDTH = `UP(NB_BITS);
 
     localparam XLENB    = `XLEN / 8;
 
-	localparam RV_REGS = 32;
-	localparam RV_REGS_BITS = 5;
+    localparam RV_REGS = 32;
+    localparam RV_REGS_BITS = 5;
 
     localparam REG_TYPE_I = 0;
     localparam REG_TYPE_F = 1;
 
 `ifdef EXT_F_ENABLE
-	localparam REG_TYPES = 2;
+    localparam REG_TYPES = 2;
 `else
-	localparam REG_TYPES = 1;
+    localparam REG_TYPES = 1;
 `endif
 
-	localparam NUM_REGS = (REG_TYPES * RV_REGS);
+    localparam NUM_REGS = (REG_TYPES * RV_REGS);
 
-	localparam REG_TYPE_BITS = `LOG2UP(REG_TYPES);
+    localparam REG_TYPE_BITS = `LOG2UP(REG_TYPES);
 
-	localparam NUM_REGS_BITS = `CLOG2(NUM_REGS);
+    localparam NUM_REGS_BITS = `CLOG2(NUM_REGS);
 
-	localparam DV_STACK_SIZE = `UP(`NUM_THREADS-1);
-	localparam DV_STACK_SIZEW = `UP(`CLOG2(DV_STACK_SIZE));
+    localparam DV_STACK_SIZE = `UP(`NUM_THREADS-1);
+    localparam DV_STACK_SIZEW = `UP(`CLOG2(DV_STACK_SIZE));
 
-	localparam PERF_CTR_BITS = 44;
+    localparam PERF_CTR_BITS = 44;
 
     localparam SIMD_COUNT = `NUM_THREADS / `SIMD_WIDTH;
     localparam SIMD_IDX_BITS = `CLOG2(SIMD_COUNT);
@@ -63,17 +63,17 @@ package VX_gpu_pkg;
     localparam NUM_OPCS_W = `UP(NUM_OPCS_BITS);
 
 `ifndef NDEBUG
-	localparam UUID_WIDTH = 44;
+    localparam UUID_WIDTH = 44;
 `else
 `ifdef SCOPE
-	localparam UUID_WIDTH = 44;
+    localparam UUID_WIDTH = 44;
 `else
-	localparam UUID_WIDTH = 1;
+    localparam UUID_WIDTH = 1;
 `endif
 `endif
 
 `ifndef NDEBUG
-	localparam PC_BITS = `XLEN;
+    localparam PC_BITS = `XLEN;
     function automatic logic [`XLEN-1:0] to_fullPC(input logic[PC_BITS-1:0] pc);
         to_fullPC = pc;
     endfunction
@@ -90,13 +90,13 @@ package VX_gpu_pkg;
     endfunction
 `endif
 
-	localparam OFFSET_BITS = 12;
+    localparam OFFSET_BITS = 12;
 
     localparam NUM_SRC_OPDS = 3;
     localparam SRC_OPD_BITS = `CLOG2(NUM_SRC_OPDS);
     localparam SRC_OPD_WIDTH = `UP(SRC_OPD_BITS);
 
-	localparam NUM_SOCKETS = `UP(`NUM_CORES / `SOCKET_SIZE);
+    localparam NUM_SOCKETS = `UP(`NUM_CORES / `SOCKET_SIZE);
 
     localparam MEM_REQ_FLAG_FLUSH =  0;
     localparam MEM_REQ_FLAG_IO =     1;
@@ -110,22 +110,22 @@ package VX_gpu_pkg;
 
     ///////////////////////////////////////////////////////////////////////////
 
-	localparam EX_ALU = 0;
-	localparam EX_LSU = 1;
-	localparam EX_SFU = 2;
-	localparam EX_FPU = (EX_SFU + `EXT_F_ENABLED);
+    localparam EX_ALU = 0;
+    localparam EX_LSU = 1;
+    localparam EX_SFU = 2;
+    localparam EX_FPU = (EX_SFU + `EXT_F_ENABLED);
     localparam EX_TCU = (EX_FPU + `EXT_TCU_ENABLED);
 
-	localparam NUM_EX_UNITS = EX_TCU + 1;
-	localparam EX_BITS = `CLOG2(NUM_EX_UNITS);
-	localparam EX_WIDTH = `UP(EX_BITS);
+    localparam NUM_EX_UNITS = EX_TCU + 1;
+    localparam EX_BITS = `CLOG2(NUM_EX_UNITS);
+    localparam EX_WIDTH = `UP(EX_BITS);
 
-	localparam SFU_CSRS = 0;
-	localparam SFU_WCTL = 1;
+    localparam SFU_CSRS = 0;
+    localparam SFU_WCTL = 1;
 
-	localparam NUM_SFU_UNITS = (2);
-	localparam SFU_BITS = `CLOG2(NUM_SFU_UNITS);
-	localparam SFU_WIDTH = `UP(SFU_BITS);
+    localparam NUM_SFU_UNITS = (2);
+    localparam SFU_BITS = `CLOG2(NUM_SFU_UNITS);
+    localparam SFU_WIDTH = `UP(SFU_BITS);
 
     ///////////////////////////////////////////////////////////////////////////
 
@@ -753,27 +753,27 @@ package VX_gpu_pkg;
     ///////////////////////// LSU memory Parameters ///////////////////////////
 
     localparam LSU_WORD_SIZE        = XLENB;
-    localparam LSU_ADDR_WIDTH	    = (`MEM_ADDR_WIDTH - `CLOG2(LSU_WORD_SIZE));
+    localparam LSU_ADDR_WIDTH       = (`MEM_ADDR_WIDTH - `CLOG2(LSU_WORD_SIZE));
     localparam LSU_MEM_BATCHES      = 1;
     localparam LSU_TAG_ID_BITS      = (`CLOG2(`LSUQ_IN_SIZE) + `CLOG2(LSU_MEM_BATCHES));
     localparam LSU_TAG_WIDTH        = (UUID_WIDTH + LSU_TAG_ID_BITS);
-    localparam LSU_NUM_REQS	        = `NUM_LSU_BLOCKS * `NUM_LSU_LANES;
+    localparam LSU_NUM_REQS         = `NUM_LSU_BLOCKS * `NUM_LSU_LANES;
     localparam LMEM_TAG_WIDTH       = LSU_TAG_WIDTH + `CLOG2(`NUM_LSU_BLOCKS);
 
     ////////////////////////// Icache Parameters //////////////////////////////
 
     // Word size in bytes
-    localparam ICACHE_WORD_SIZE	    = 4;
-    localparam ICACHE_ADDR_WIDTH	= (`MEM_ADDR_WIDTH - `CLOG2(ICACHE_WORD_SIZE));
+    localparam ICACHE_WORD_SIZE     = 4;
+    localparam ICACHE_ADDR_WIDTH    = (`MEM_ADDR_WIDTH - `CLOG2(ICACHE_WORD_SIZE));
 
     // Block size in bytes
-    localparam ICACHE_LINE_SIZE	    = `L1_LINE_SIZE;
+    localparam ICACHE_LINE_SIZE     = `L1_LINE_SIZE;
 
     // Core request tag Id bits
-    localparam ICACHE_TAG_ID_BITS	= NW_WIDTH;
+    localparam ICACHE_TAG_ID_BITS   = NW_WIDTH;
 
     // Core request tag bits
-    localparam ICACHE_TAG_WIDTH	    = (UUID_WIDTH + ICACHE_TAG_ID_BITS);
+    localparam ICACHE_TAG_WIDTH     = (UUID_WIDTH + ICACHE_TAG_ID_BITS);
 
     // Memory request data bits
     localparam ICACHE_MEM_DATA_WIDTH = (ICACHE_LINE_SIZE * 8);
@@ -788,15 +788,15 @@ package VX_gpu_pkg;
     ////////////////////////// Dcache Parameters //////////////////////////////
 
     // Word size in bytes
-    localparam DCACHE_WORD_SIZE	    = `LSU_LINE_SIZE;
-    localparam DCACHE_ADDR_WIDTH	= (`MEM_ADDR_WIDTH - `CLOG2(DCACHE_WORD_SIZE));
+    localparam DCACHE_WORD_SIZE     = `LSU_LINE_SIZE;
+    localparam DCACHE_ADDR_WIDTH    = (`MEM_ADDR_WIDTH - `CLOG2(DCACHE_WORD_SIZE));
 
     // Block size in bytes
-    localparam DCACHE_LINE_SIZE 	= `L1_LINE_SIZE;
+    localparam DCACHE_LINE_SIZE     = `L1_LINE_SIZE;
 
     // Input request size (using coalesced memory blocks)
-    localparam DCACHE_CHANNELS	    = `UP((`NUM_LSU_LANES * LSU_WORD_SIZE) / DCACHE_WORD_SIZE);
-    localparam DCACHE_NUM_REQS	    = `NUM_LSU_BLOCKS * DCACHE_CHANNELS;
+    localparam DCACHE_CHANNELS      = `UP((`NUM_LSU_LANES * LSU_WORD_SIZE) / DCACHE_WORD_SIZE);
+    localparam DCACHE_NUM_REQS      = `NUM_LSU_BLOCKS * DCACHE_CHANNELS;
 
     // Core request tag Id bits
     localparam DCACHE_MERGED_REQS   = (`NUM_LSU_LANES * LSU_WORD_SIZE) / DCACHE_WORD_SIZE;
@@ -804,7 +804,7 @@ package VX_gpu_pkg;
     localparam DCACHE_TAG_ID_BITS   = (`CLOG2(`LSUQ_OUT_SIZE) + `CLOG2(DCACHE_MEM_BATCHES));
 
     // Core request tag bits
-    localparam DCACHE_TAG_WIDTH	    = (UUID_WIDTH + DCACHE_TAG_ID_BITS);
+    localparam DCACHE_TAG_WIDTH     = (UUID_WIDTH + DCACHE_TAG_ID_BITS);
 
     // Memory request data bits
     localparam DCACHE_MEM_DATA_WIDTH = (DCACHE_LINE_SIZE * 8);
@@ -828,16 +828,16 @@ package VX_gpu_pkg;
     localparam DCACHE_MEM_ARB_IDX   = ICACHE_MEM_ARB_IDX + 1;
 
     // Word size in bytes
-    localparam L2_WORD_SIZE	        = `L1_LINE_SIZE;
+    localparam L2_WORD_SIZE         = `L1_LINE_SIZE;
 
     // Input request size
-    localparam L2_NUM_REQS	        = NUM_SOCKETS * `L1_MEM_PORTS;
+    localparam L2_NUM_REQS          = NUM_SOCKETS * `L1_MEM_PORTS;
 
     // Core request tag bits
-    localparam L2_TAG_WIDTH	        = L1_MEM_ARB_TAG_WIDTH;
+    localparam L2_TAG_WIDTH         = L1_MEM_ARB_TAG_WIDTH;
 
     // Memory request data bits
-    localparam L2_MEM_DATA_WIDTH	= (`L2_LINE_SIZE * 8);
+    localparam L2_MEM_DATA_WIDTH    = (`L2_LINE_SIZE * 8);
 
     // Memory request tag bits
 `ifdef L2_ENABLE
@@ -849,16 +849,16 @@ package VX_gpu_pkg;
     /////////////////////////////// L3 Parameters /////////////////////////////
 
     // Word size in bytes
-    localparam L3_WORD_SIZE	        = `L2_LINE_SIZE;
+    localparam L3_WORD_SIZE         = `L2_LINE_SIZE;
 
     // Input request size
-    localparam L3_NUM_REQS	        = `NUM_CLUSTERS * `L2_MEM_PORTS;
+    localparam L3_NUM_REQS          = `NUM_CLUSTERS * `L2_MEM_PORTS;
 
     // Core request tag bits
-    localparam L3_TAG_WIDTH	        = L2_MEM_TAG_WIDTH;
+    localparam L3_TAG_WIDTH         = L2_MEM_TAG_WIDTH;
 
     // Memory request data bits
-    localparam L3_MEM_DATA_WIDTH	= (`L3_LINE_SIZE * 8);
+    localparam L3_MEM_DATA_WIDTH    = (`L3_LINE_SIZE * 8);
 
     // Memory request tag bits
 `ifdef L3_ENABLE

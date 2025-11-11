@@ -381,7 +381,7 @@ module VX_schedule import VX_gpu_pkg::*; #(
             `UNUSED_PIN (alm_full),
             `UNUSED_PIN (size)
         );
-	end
+    end
 
     assign sched_csr_if.alm_empty = pending_warp_alm_empty[sched_csr_if.alm_empty_wid];
 

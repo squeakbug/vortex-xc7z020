@@ -276,10 +276,10 @@ module VX_afu_ctrl import VX_gpu_pkg::*; #(
             wstate <= WSTATE_ADDR;
         end else begin
             case (wstate)
-            WSTATE_ADDR: wstate <= s_axi_aw_fire ? WSTATE_DATA : WSTATE_ADDR;
-            WSTATE_DATA: wstate <= s_axi_w_fire ? WSTATE_RESP : WSTATE_DATA;
-            WSTATE_RESP: wstate <= s_axi_b_fire ? WSTATE_ADDR : WSTATE_RESP;
-            default:     wstate <= WSTATE_ADDR;
+                WSTATE_ADDR: wstate <= s_axi_aw_fire ? WSTATE_DATA : WSTATE_ADDR;
+                WSTATE_DATA: wstate <= s_axi_w_fire ? WSTATE_RESP : WSTATE_DATA;
+                WSTATE_RESP: wstate <= s_axi_b_fire ? WSTATE_ADDR : WSTATE_RESP;
+                default:     wstate <= WSTATE_ADDR;
             endcase
         end
     end
@@ -314,36 +314,36 @@ module VX_afu_ctrl import VX_gpu_pkg::*; #(
 
             if (s_axi_w_fire) begin
                 case (waddr)
-                ADDR_AP_CTRL: begin
-                    if (s_axi_wstrb[0]) begin
-                        if (s_axi_wdata[0])
-                            ap_start_r <= 1;
-                        if (s_axi_wdata[4])
-                            ap_reset_r <= 1;
-                        if (s_axi_wdata[7])
-                            auto_restart_r <= 1;
+                    ADDR_AP_CTRL: begin
+                        if (s_axi_wstrb[0]) begin
+                            if (s_axi_wdata[0])
+                                ap_start_r <= 1;
+                            if (s_axi_wdata[4])
+                                ap_reset_r <= 1;
+                            if (s_axi_wdata[7])
+                                auto_restart_r <= 1;
+                        end
                     end
-                end
-                ADDR_GIE: begin
-                    if (s_axi_wstrb[0])
-                        gie_r <= s_axi_wdata[0];
-                end
-                ADDR_IER: begin
-                    if (s_axi_wstrb[0])
-                        ier_r <= s_axi_wdata[1:0];
-                end
-                ADDR_ISR: begin
-                    if (s_axi_wstrb[0])
-                        isr_r <= isr_r ^ s_axi_wdata[1:0];
-                end
-                ADDR_DCR_0: begin
-                    dcra_r <= (s_axi_wdata & wmask) | (dcra_r & ~wmask);
-                end
-                ADDR_DCR_1: begin
-                    dcrv_r <= (s_axi_wdata & wmask) | (dcrv_r & ~wmask);
-                    dcr_wr_valid_r <= 1;
-                end
-                default:;
+                    ADDR_GIE: begin
+                        if (s_axi_wstrb[0])
+                            gie_r <= s_axi_wdata[0];
+                    end
+                    ADDR_IER: begin
+                        if (s_axi_wstrb[0])
+                            ier_r <= s_axi_wdata[1:0];
+                    end
+                    ADDR_ISR: begin
+                        if (s_axi_wstrb[0])
+                            isr_r <= isr_r ^ s_axi_wdata[1:0];
+                    end
+                    ADDR_DCR_0: begin
+                        dcra_r <= (s_axi_wdata & wmask) | (dcra_r & ~wmask);
+                    end
+                    ADDR_DCR_1: begin
+                        dcrv_r <= (s_axi_wdata & wmask) | (dcrv_r & ~wmask);
+                        dcr_wr_valid_r <= 1;
+                    end
+                    default:;
                 endcase
 
                 if (ier_r[0] & ap_done)
@@ -371,10 +371,10 @@ module VX_afu_ctrl import VX_gpu_pkg::*; #(
             rstate <= RSTATE_ADDR;
         end else begin
             case (rstate)
-            RSTATE_ADDR: rstate <= s_axi_ar_fire ? RSTATE_DATA : RSTATE_ADDR;
-            RSTATE_DATA: rstate <= rvalid_stall ? RSTATE_DATA : RSTATE_RESP;
-            RSTATE_RESP: rstate <= s_axi_r_fire ? RSTATE_ADDR : RSTATE_RESP;
-            default:     rstate <= RSTATE_ADDR;
+                RSTATE_ADDR: rstate <= s_axi_ar_fire ? RSTATE_DATA : RSTATE_ADDR;
+                RSTATE_DATA: rstate <= rvalid_stall ? RSTATE_DATA : RSTATE_RESP;
+                RSTATE_RESP: rstate <= s_axi_r_fire ? RSTATE_ADDR : RSTATE_RESP;
+                default:     rstate <= RSTATE_ADDR;
             endcase
         end
     end
