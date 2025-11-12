@@ -76,7 +76,7 @@ project_1/sources.txt:
 
 build: done.dcp
 done.dcp: project_1/sources.txt kernel.bin.coe project.tcl pre_opt_hook.tcl
-	MAX_JOBS=$(JOBS) TOOL_DIR=$(SCRIPT_DIR) $(VIVADO) -mode batch -source project.tcl -tclargs $(DEVICE) project_1/sources.txt
+	MAX_JOBS=$(JOBS) TOOL_DIR=$(SCRIPT_DIR) $(VIVADO) -mode batch -source project.tcl.in -tclargs $(DEVICE) project_1/sources.txt
 	echo done > done.dcp
 
 run: simulate.tcl done.dcp
