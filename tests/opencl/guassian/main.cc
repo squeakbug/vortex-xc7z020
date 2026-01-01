@@ -1,13 +1,39 @@
 #ifndef __GAUSSIAN_ELIMINATION__
 #define __GAUSSIAN_ELIMINATION__
 
+#define FLOAT_EPS 1e-6
+
+#include <cmath>
 #include "gaussianElim.h"
 
 cl_context context = NULL;
 
+static bool compare_equal(float a, float b) {
+  return fabs(a - b) < FLOAT_EPS;
+}
+
+void guassian_cpu(float *A, float *B, float *C, int32_t size) {
+  for (int32_t i = 0; i < size; i++) {
+    for (int32_t j = i + 1; j < size; j++) {
+      float c = -A[j * size + i] / A[i * size + i];
+      for (int32_t k = i; k < size; k++) {
+        A[j * size + k] += c * A[i * size + k];
+      }
+      B[j] += c * B[i];
+    }
+  }
+
+  for (int32_t i = size - 1; i >= 0; i--) {
+    C[i] = B[i] / A[i * size + i];
+    for (int32_t j = i - 1; j >= 0; j--) {
+      B[j] -= A[j * size + i] * C[i];
+    }
+  }
+}
+
 int main(int argc, char *argv[]) {
   printf("enter demo main\n");
-  float *a = NULL, *b = NULL, *finalVec = NULL;
+  float *a = NULL, *b = NULL, *finalVec = NULL, *refVec = NULL;
   float *m = NULL;
   int size = 0;
 
@@ -15,16 +41,18 @@ int main(int argc, char *argv[]) {
 
   // args
   char filename[100];
-  int quiet = 0, timing = 0, platform = -1, device = -1;
+  int quiet = 0, timing = 0, platform = -1, device = -1, rnd = 50;
 
   // parse command line
   if (parseCommandline(argc, argv, filename, &quiet, &timing, &platform,
-                       &device, &size)) {
+                       &device, &size, &rnd)) {
     printUsage();
     return 0;
   }
 
   context = cl_init_context(platform, device, quiet);
+
+  srand(rnd);
 
   if (size == 0) {
     fp = fopen(filename, "r");
@@ -67,20 +95,37 @@ int main(int argc, char *argv[]) {
 
   // run kernels
   ForwardSub(context, a, b, m, size, timing);
+  BackSub(a, b, finalVec, size);
 
   // end timing
   if (!quiet) {
     printf("The result of matrix m is: \n");
-
     PrintMat(m, size, size, size);
+  
     printf("The result of matrix a is: \n");
     PrintMat(a, size, size, size);
     printf("The result of array b is: \n");
     PrintAry(b, size);
 
-    BackSub(a, b, finalVec, size);
     printf("The final solution is: \n");
     PrintAry(finalVec, size);
+  }
+
+  printf("Verify result\n");
+  refVec = (float *)malloc(size * sizeof(float));
+  guassian_cpu(a, b, refVec, size);
+  int errors = 0;
+  for (uint32_t i = 0; i < size; ++i) {
+    if (!compare_equal(finalVec[i], refVec[i])) {
+      if (errors < 100)
+        printf("*** error: [%d] expected=%f, actual=%f\n", i, refVec[i], finalVec[i]);
+      ++errors;
+    }
+  }
+  if (errors != 0) {
+    printf("FAILED! - %d errors\n", errors);
+  } else {
+    printf("PASSED!\n");
   }
 
   if (fp) fclose(fp);
@@ -296,7 +341,7 @@ float eventTime(cl_event event, cl_command_queue command_queue) {
 }
 
 int parseCommandline(int argc, char *argv[], char *filename, int *q, int *t,
-                     int *p, int *d, int* s) {
+                     int *p, int *d, int* s, int *r) {
   int i;
   if (argc < 2) return 1; // error
   char flag;
@@ -330,6 +375,10 @@ int parseCommandline(int argc, char *argv[], char *filename, int *q, int *t,
       case 's': // size
         i++;
         *s = atoi(argv[i]);
+        break;
+      case 'r': // set pseudorandom generator seed
+        i++;
+        *r = atoi(argv[i]);
         break;
       }
     }
