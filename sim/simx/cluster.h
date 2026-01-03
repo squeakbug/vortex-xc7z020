@@ -21,6 +21,9 @@
 #include "core.h"
 #include "socket.h"
 #include "constants.h"
+#include "raster_unit.h"
+#include "om_unit.h"
+#include "tex_unit.h"
 
 namespace vortex {
 
@@ -30,6 +33,15 @@ class Cluster : public SimObject<Cluster> {
 public:
   struct PerfStats {
     CacheSim::PerfStats l2cache;
+#ifdef EXT_RASTER_ENABLE
+    CacheSim::PerfStats rcache;
+#endif
+#ifdef EXT_TEX_ENABLE
+    CacheSim::PerfStats tcache;
+#endif
+#ifdef EXT_OM_ENABLE
+    CacheSim::PerfStats ocache;
+#endif
   };
 
   std::vector<SimPort<MemReq>> mem_req_ports;
@@ -75,6 +87,18 @@ private:
   std::vector<Socket::Ptr>    sockets_;
   std::vector<CoreMask>       barriers_;
   CacheSim::Ptr               l2cache_;
+#ifdef EXT_RASTER_ENABLE
+  std::vector<RasterUnit::Ptr> raster_units_;
+  CacheCluster::Ptr            rcaches_;
+#endif
+#ifdef EXT_TEX_ENABLE
+  std::vector<TexUnit::Ptr>   tex_units_;
+  CacheCluster::Ptr           tcaches_;
+#endif
+#ifdef EXT_OM_ENABLE
+  std::vector<OMUnit::Ptr>    om_units_;
+  CacheCluster::Ptr           ocaches_;
+#endif
   uint32_t                    cores_per_socket_;
 };
 

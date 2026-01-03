@@ -17,6 +17,18 @@
 `include "VX_fpu_define.vh"
 `endif
 
+`ifdef EXT_TEX_ENABLE
+`include "VX_tex_define.vh"
+`endif
+
+`ifdef EXT_RASTER_ENABLE
+`include "VX_raster_define.vh"
+`endif
+
+`ifdef EXT_OM_ENABLE
+`include "VX_om_define.vh"
+`endif
+
 module VX_core import VX_gpu_pkg::*; #(
     parameter CORE_ID = 0,
     parameter `STRING INSTANCE_ID = ""
@@ -36,6 +48,27 @@ module VX_core import VX_gpu_pkg::*; #(
     VX_mem_bus_if.master    dcache_bus_if [DCACHE_NUM_REQS],
 
     VX_mem_bus_if.master    icache_bus_if,
+
+`ifdef EXT_TEX_ENABLE
+`ifdef PERF_ENABLE
+    VX_tex_perf_if.slave    perf_tex_if,
+`endif
+    VX_tex_bus_if.master    tex_bus_if,
+`endif
+
+`ifdef EXT_RASTER_ENABLE
+`ifdef PERF_ENABLE
+    VX_raster_perf_if.slave perf_raster_if,
+`endif
+    VX_raster_bus_if.slave  raster_bus_if,
+`endif
+
+`ifdef EXT_OM_ENABLE
+`ifdef PERF_ENABLE
+    VX_om_perf_if.slave     perf_om_if,
+`endif
+    VX_om_bus_if.master     om_bus_if,
+`endif
 
 `ifdef GBAR_ENABLE
     VX_gbar_bus_if.master   gbar_bus_if,
@@ -74,6 +107,15 @@ module VX_core import VX_gpu_pkg::*; #(
         sysmem_perf_tmp = sysmem_perf;
         sysmem_perf_tmp.lmem = lmem_perf;
         sysmem_perf_tmp.coalescer = coalescer_perf;
+`ifdef EXT_TEX_ENABLE
+        sysmem_perf_tmp.tcache = mem_perf_if.tcache;
+`endif
+`ifdef EXT_RASTER_ENABLE
+        sysmem_perf_tmp.rcache = mem_perf_if.rcache;
+`endif
+`ifdef EXT_OM_ENABLE
+        sysmem_perf_tmp.ocache = mem_perf_if.ocache;
+`endif
     end
 `endif
 
@@ -168,6 +210,27 @@ module VX_core import VX_gpu_pkg::*; #(
     `ifdef PERF_ENABLE
         .sysmem_perf    (sysmem_perf_tmp),
         .pipeline_perf  (pipeline_perf),
+    `endif
+
+        `ifdef EXT_TEX_ENABLE
+        .tex_bus_if     (tex_bus_if),
+    `ifdef PERF_ENABLE
+        .perf_tex_if    (perf_tex_if),
+    `endif
+    `endif
+
+    `ifdef EXT_RASTER_ENABLE
+        .raster_bus_if  (raster_bus_if),
+    `ifdef PERF_ENABLE
+        .perf_raster_if (perf_raster_if),
+    `endif
+    `endif
+
+    `ifdef EXT_OM_ENABLE
+        .om_bus_if      (om_bus_if),
+    `ifdef PERF_ENABLE
+        .perf_om_if     (perf_om_if),
+    `endif
     `endif
 
         .base_dcrs      (base_dcrs),

@@ -30,7 +30,16 @@ Core::Core(const SimContext& ctx,
            Socket* socket,
            const Arch &arch,
            const DCRS &dcrs
-           )
+        #ifdef EXT_RASTER_ENABLE
+           , const std::vector<RasterUnit::Ptr>& raster_units
+        #endif
+        #ifdef EXT_TEX_ENABLE
+           , const std::vector<TexUnit::Ptr>& tex_units
+        #endif
+        #ifdef EXT_OM_ENABLE
+           , const std::vector<OMUnit::Ptr>& om_units
+        #endif
+  )
   : SimObject(ctx, StrFormat("core%d", core_id))
   , icache_req_ports(1, this)
   , icache_rsp_ports(1, this)
@@ -41,6 +50,15 @@ Core::Core(const SimContext& ctx,
   , arch_(arch)
 #ifdef EXT_TCU_ENABLE
   , tensor_unit_(TensorUnit::Create("tcu", arch, this))
+#endif
+#ifdef EXT_RASTER_ENABLE
+  , raster_units_(raster_units)
+#endif
+#ifdef EXT_TEX_ENABLE
+  , tex_units_(tex_units)
+#endif
+#ifdef EXT_OM_ENABLE
+  , om_units_(om_units)
 #endif
 #ifdef EXT_V_ENABLE
   , vec_unit_(VecUnit::Create("vpu", arch, this))
@@ -348,6 +366,15 @@ void Core::issue() {
         #endif
         #ifdef EXT_TCU_ENABLE
           case FUType::TCU: ++perf_stats_.scrb_tcu; break;
+        #endif
+        #ifdef EXT_RASTER_ENABLE
+          case FUType::RASTER: ++perf_stats_.scrb_raster; break;
+        #endif
+        #ifdef EXT_TEX_ENABLE
+          case FUType::TEX: ++perf_stats_.scrb_tex; break;
+        #endif
+        #ifdef EXT_OM_ENABLE
+          case FUType::OM: ++perf_stats_.scrb_om; break;
         #endif
           default: assert(false);
           }

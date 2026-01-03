@@ -243,6 +243,12 @@
         .data_out (dst) \
     )
 
+////////////////////////// Texture Unit Definitions ///////////////////////////
+
+`define TEX_REQ_TAG_WIDTH       (`UUID_WIDTH + `LOG2UP(`TEX_REQ_QUEUE_SIZE))
+`define TEX_REQ_ARB1_TAG_WIDTH  (`TEX_REQ_TAG_WIDTH + `CLOG2(`SOCKET_SIZE))
+`define TEX_REQ_ARB2_TAG_WIDTH  (`TEX_REQ_ARB1_TAG_WIDTH + `ARB_SEL_BITS(`NUM_SOCKETS, `NUM_TEX_UNITS))
+
 ///////////////////////////////////////////////////////////////////////////////
 
 `define ARB_SEL_BITS(I, O)  ((I > O) ? `CLOG2(`CDIV(I, O)) : 0)
@@ -353,6 +359,24 @@
     end \
     assign dst.rsp_ready = src.rsp_ready \
     /* verilator lint_off GENUNNAMED */
+
+`define ASSIGN_VX_RASTER_BUS_IF(dst, src) \
+    assign dst.req_valid = src.req_valid; \
+    assign dst.req_data  = src.req_data; \
+    assign src.req_ready = dst.req_ready
+
+`define ASSIGN_VX_OM_BUS_IF(dst, src) \
+    assign dst.req_valid = src.req_valid; \
+    assign dst.req_data  = src.req_data; \
+    assign src.req_ready = dst.req_ready
+
+`define ASSIGN_VX_TEX_BUS_IF(dst, src) \
+    assign dst.req_valid = src.req_valid; \
+    assign dst.req_data  = src.req_data; \
+    assign src.req_ready = dst.req_ready; \
+    assign src.rsp_valid = dst.rsp_valid; \
+    assign src.rsp_data  = dst.rsp_data; \
+    assign dst.rsp_ready = src.rsp_ready
 
 `define INIT_VX_MEM_BUS_IF(itf) \
     assign itf.req_valid = 0; \

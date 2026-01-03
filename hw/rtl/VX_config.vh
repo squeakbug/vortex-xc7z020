@@ -32,6 +32,12 @@
 
 ///////////////////////////////////////////////////////////////////////////////
 
+`ifdef EXT_GFX_ENABLE
+`define EXT_TEX_ENABLE
+`define EXT_RASTER_ENABLE
+`define EXT_OM_ENABLE
+`endif
+
 `ifndef EXT_M_DISABLE
 `define EXT_M_ENABLE
 `endif
@@ -526,6 +532,72 @@
 `define FNCP_PE_RATIO 2
 `endif
 
+// Texture Units ///////////////////////////////////////////////////////////////
+
+// Number of Texture Units
+`ifndef NUM_TEX_UNITS
+`define NUM_TEX_UNITS `UP(`NUM_CORES / 8)
+`endif
+
+// Texture Request Queue Size
+`ifndef TEX_REQ_QUEUE_SIZE
+`define TEX_REQ_QUEUE_SIZE (2 * (`NUM_THREADS / `NUM_SFU_LANES))
+`endif
+
+// Texture Memory Queue Size
+`ifndef TEX_MEM_QUEUE_SIZE
+`define TEX_MEM_QUEUE_SIZE `TEX_REQ_QUEUE_SIZE
+`endif
+
+// Raster Units ////////////////////////////////////////////////////////////////
+
+// Number of Raster Units
+`ifndef NUM_RASTER_UNITS
+`define NUM_RASTER_UNITS `UP(`NUM_CORES / 16)
+`endif
+
+// Raster Memory Queue Size
+`ifndef RASTER_MEM_QUEUE_SIZE
+`define RASTER_MEM_QUEUE_SIZE 4
+`endif
+
+// Number of Raster Slices
+`ifndef RASTER_NUM_SLICES
+`define RASTER_NUM_SLICES 1
+`endif
+
+// Raster Tile Size
+`ifndef RASTER_TILE_LOGSIZE
+`define RASTER_TILE_LOGSIZE 5
+`endif
+
+// Raster Block size
+`ifndef RASTER_BLOCK_LOGSIZE
+`define RASTER_BLOCK_LOGSIZE 2
+`endif
+
+// Raster Quad Fifo Depth
+`ifndef RASTER_QUAD_FIFO_DEPTH
+`define RASTER_QUAD_FIFO_DEPTH `MAX(2, `NUM_CORES)
+`endif
+
+// Raster Memory Fifo Depth
+`ifndef RASTER_MEM_FIFO_DEPTH
+`define RASTER_MEM_FIFO_DEPTH 8
+`endif
+
+// OM Units ///////////////////////////////////////////////////////////////////
+
+// Number of OM Units
+`ifndef NUM_OM_UNITS
+`define NUM_OM_UNITS `UP(`NUM_CORES / 8)
+`endif
+
+// OM Memory Queue Size
+`ifndef OM_MEM_QUEUE_SIZE
+`define OM_MEM_QUEUE_SIZE 4
+`endif
+
 // Icache Configurable Knobs //////////////////////////////////////////////////
 
 // Cache Enable
@@ -670,6 +742,168 @@
 // Number of Banks
 `ifndef LMEM_NUM_BANKS
 `define LMEM_NUM_BANKS `NUM_LSU_LANES
+`endif
+
+// Tcache Configurable Knobs //////////////////////////////////////////////////
+
+// Cache Enable
+`ifndef TCACHE_DISABLE
+`define TCACHE_ENABLE
+`endif
+`ifdef TCACHE_ENABLE
+    `define TCACHE_ENABLED 1
+`else
+    `define TCACHE_ENABLED 0
+    `define NUM_TCACHES 0
+    `define TCACHE_NUM_BANKS 1
+`endif
+
+// Number of Cache Units
+`ifndef NUM_TCACHES
+`define NUM_TCACHES `UP(`NUM_TEX_UNITS / 4)
+`endif
+
+// Cache Size
+`ifndef TCACHE_SIZE
+`define TCACHE_SIZE 8192
+`endif
+
+// Number of Banks
+`ifndef TCACHE_NUM_BANKS
+`define TCACHE_NUM_BANKS 1
+`endif
+
+// Core Response Queue Size
+`ifndef TCACHE_CRSQ_SIZE
+`define TCACHE_CRSQ_SIZE 2
+`endif
+
+// Miss Handling Register Size
+`ifndef TCACHE_MSHR_SIZE
+`define TCACHE_MSHR_SIZE 16
+`endif
+
+// Memory Request Queue Size
+`ifndef TCACHE_MREQ_SIZE
+`define TCACHE_MREQ_SIZE 4
+`endif
+
+// Memory Response Queue Size
+`ifndef TCACHE_MRSQ_SIZE
+`define TCACHE_MRSQ_SIZE 0
+`endif
+
+// Number of Associative Ways
+`ifndef TCACHE_NUM_WAYS
+`define TCACHE_NUM_WAYS 2
+`endif
+
+// Rcache Configurable Knobs //////////////////////////////////////////////////
+
+// Cache Enable
+`ifndef RCACHE_DISABLE
+`define RCACHE_ENABLE
+`endif
+`ifdef RCACHE_ENABLE
+    `define RCACHE_ENABLED 1
+`else
+    `define RCACHE_ENABLED 0
+    `define NUM_RCACHES 0
+    `define RCACHE_NUM_BANKS 1
+`endif
+
+// Number of Cache Units
+`ifndef NUM_RCACHES
+`define NUM_RCACHES `UP(`NUM_RASTER_UNITS / 4)
+`endif
+
+// Cache Size
+`ifndef RCACHE_SIZE
+`define RCACHE_SIZE 4096
+`endif
+
+// Number of Banks
+`ifndef RCACHE_NUM_BANKS
+`define RCACHE_NUM_BANKS 1
+`endif
+
+// Core Response Queue Size
+`ifndef RCACHE_CRSQ_SIZE
+`define RCACHE_CRSQ_SIZE 2
+`endif
+
+// Miss Handling Register Size
+`ifndef RCACHE_MSHR_SIZE
+`define RCACHE_MSHR_SIZE 16
+`endif
+
+// Memory Request Queue Size
+`ifndef RCACHE_MREQ_SIZE
+`define RCACHE_MREQ_SIZE 4
+`endif
+
+// Memory Response Queue Size
+`ifndef RCACHE_MRSQ_SIZE
+`define RCACHE_MRSQ_SIZE 0
+`endif
+
+// Number of Associative Ways
+`ifndef RCACHE_NUM_WAYS
+`define RCACHE_NUM_WAYS 2
+`endif
+
+// Ocache Configurable Knobs //////////////////////////////////////////////////
+
+// Cache Enable
+`ifndef OCACHE_DISABLE
+`define OCACHE_ENABLE
+`endif
+`ifdef OCACHE_ENABLE
+    `define OCACHE_ENABLED 1
+`else
+    `define OCACHE_ENABLED 0
+    `define NUM_OCACHES 0
+    `define OCACHE_NUM_BANKS 1
+`endif
+
+// Number of Cache Units
+`ifndef NUM_OCACHES
+`define NUM_OCACHES `UP(`NUM_OM_UNITS / 4)
+`endif
+
+// Cache Size
+`ifndef OCACHE_SIZE
+`define OCACHE_SIZE 4096
+`endif
+
+// Number of Banks
+`ifndef OCACHE_NUM_BANKS
+`define OCACHE_NUM_BANKS 1
+`endif
+
+// Core Response Queue Size
+`ifndef OCACHE_CRSQ_SIZE
+`define OCACHE_CRSQ_SIZE 2
+`endif
+
+// Miss Handling Register Size
+`ifndef OCACHE_MSHR_SIZE
+`define OCACHE_MSHR_SIZE 16
+`endif
+
+// Memory Request Queue Size
+`ifndef OCACHE_MREQ_SIZE
+`define OCACHE_MREQ_SIZE 4
+`endif
+
+// Memory Response Queue Size
+`ifndef OCACHE_MRSQ_SIZE
+`define OCACHE_MRSQ_SIZE 0
+`endif
+
+// Number of Associative Ways
+`ifndef OCACHE_NUM_WAYS
+`define OCACHE_NUM_WAYS 2
 `endif
 
 // L2cache Configurable Knobs /////////////////////////////////////////////////
@@ -902,6 +1136,24 @@
     `define EXT_TCU_ENABLED 0
 `endif
 
+`ifdef EXT_TEX_ENABLE
+    `define EXT_TEX_ENABLED 1
+`else
+    `define EXT_TEX_ENABLED 0
+`endif
+
+`ifdef EXT_RASTER_ENABLE
+    `define EXT_RASTER_ENABLED 1
+`else
+    `define EXT_RASTER_ENABLED 0
+`endif
+
+`ifdef EXT_OM_ENABLE
+    `define EXT_OM_ENABLED 1
+`else
+    `define EXT_OM_ENABLED 0
+`endif
+
 `define ISA_STD_A           0
 `define ISA_STD_C           2
 `define ISA_STD_D           3
@@ -921,6 +1173,9 @@
 `define ISA_EXT_LMEM        4
 `define ISA_EXT_ZICOND      5
 `define ISA_EXT_TCU         6
+`define ISA_EXT_TEX         7
+`define ISA_EXT_RASTER      8
+`define ISA_EXT_OM          9
 
 `define MISA_EXT  (`ICACHE_ENABLED  << `ISA_EXT_ICACHE) \
                 | (`DCACHE_ENABLED  << `ISA_EXT_DCACHE) \
@@ -929,6 +1184,9 @@
                 | (`LMEM_ENABLED    << `ISA_EXT_LMEM) \
                 | (`EXT_ZICOND_ENABLED << `ISA_EXT_ZICOND) \
                 | (`EXT_TCU_ENABLED << `ISA_EXT_TCU) \
+                | (`EXT_TEX_ENABLED << `ISA_EXT_TEX) \
+                | (`EXT_RASTER_ENABLED << `ISA_EXT_RASTER) \
+                | (`EXT_OM_ENABLED  << `ISA_EXT_OM)
 
 `define MISA_STD  (`EXT_A_ENABLED <<  0) /* A - Atomic Instructions extension */ \
                 | (0 <<  1) /* B - Tentatively reserved for Bit operations extension */ \

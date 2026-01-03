@@ -13,6 +13,18 @@
 
 `include "VX_define.vh"
 
+`ifdef EXT_TEX_ENABLE
+`include "VX_tex_define.vh"
+`endif
+
+`ifdef EXT_RASTER_ENABLE
+`include "VX_raster_define.vh"
+`endif
+
+`ifdef EXT_OM_ENABLE
+`include "VX_om_define.vh"
+`endif
+
 module Vortex import VX_gpu_pkg::*; (
     `SCOPE_IO_DECL
 
@@ -57,6 +69,15 @@ module Vortex import VX_gpu_pkg::*; (
         sysmem_perf = '0;
         sysmem_perf.l3cache = l3_perf;
         sysmem_perf.mem = mem_perf;
+`ifdef EXT_TEX_ENABLE
+        sysmem_perf.tcache = 'x;
+`endif
+`ifdef EXT_RASTER_ENABLE
+        sysmem_perf.rcache  = 'x;
+`endif
+`ifdef EXT_OM_ENABLE
+        sysmem_perf.ocache  = 'x;
+`endif
     end
 `endif
 

@@ -68,6 +68,7 @@ The following dependencies will be fetched prebuilt by `toolchain_install.sh`.
 - [Verilator](https://www.veripool.org/verilator)
 - [cvfpu](https://github.com/openhwgroup/cvfpu.git)
 - [SoftFloat](https://github.com/ucb-bar/berkeley-softfloat-3.git)
+- [CocoGfx](https://github.com/gtcasl/cocogfx.git)
 - [Ramulator](https://github.com/CMU-SAFARI/ramulator.git)
 - [Yosys](https://github.com/YosysHQ/yosys)
 - [Sv2v](https://github.com/zachjs/sv2v)

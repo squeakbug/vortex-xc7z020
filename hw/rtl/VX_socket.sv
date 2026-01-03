@@ -33,6 +33,27 @@ module VX_socket import VX_gpu_pkg::*; #(
     // Memory
     VX_mem_bus_if.master    mem_bus_if [`L1_MEM_PORTS],
 
+`ifdef EXT_TEX_ENABLE
+`ifdef PERF_ENABLE
+    VX_tex_perf_if.slave    perf_tex_if,
+`endif
+    VX_tex_bus_if.master    tex_bus_if,
+`endif
+
+`ifdef EXT_RASTER_ENABLE
+`ifdef PERF_ENABLE
+    VX_raster_perf_if.slave perf_raster_if,
+`endif
+    VX_raster_bus_if.slave  raster_bus_if,
+`endif
+
+`ifdef EXT_OM_ENABLE
+`ifdef PERF_ENABLE
+    VX_om_perf_if.slave     perf_om_if,
+`endif
+    VX_om_bus_if.master     om_bus_if,
+`endif
+
 `ifdef GBAR_ENABLE
     // Barrier
     VX_gbar_bus_if.master   gbar_bus_if,
@@ -60,6 +81,88 @@ module VX_socket import VX_gpu_pkg::*; #(
     );
 `endif
 
+`ifdef EXT_RASTER_ENABLE
+
+    VX_raster_bus_if #(
+        .NUM_LANES (`NUM_SFU_LANES)
+    ) per_core_raster_bus_if[`SOCKET_SIZE](), raster_bus_tmp_if[1]();
+
+    `RESET_RELAY (raster_arb_reset, reset);
+
+    VX_raster_arb #(
+        .NUM_INPUTS  (1),
+        .NUM_LANES   (`NUM_SFU_LANES),
+        .NUM_OUTPUTS (`SOCKET_SIZE),
+        .ARBITER     ("R"),
+        .OUT_BUF     ((`SOCKET_SIZE > 1) ? 2 : 0)
+    ) raster_arb (
+        .clk        (clk),
+        .reset      (raster_arb_reset),
+        .bus_in_if  (raster_bus_tmp_if),
+        .bus_out_if (per_core_raster_bus_if)
+    );
+
+    `ASSIGN_VX_RASTER_BUS_IF (raster_bus_tmp_if[0], raster_bus_if);
+
+`endif
+
+`ifdef EXT_OM_ENABLE
+
+    VX_om_bus_if #(
+        .NUM_LANES (`NUM_SFU_LANES)
+    ) per_core_om_bus_if[`SOCKET_SIZE](), om_bus_tmp_if[1]();
+
+    `RESET_RELAY (om_arb_reset, reset);
+
+    VX_om_arb #(
+        .NUM_INPUTS  (`SOCKET_SIZE),
+        .NUM_OUTPUTS (1),
+        .NUM_LANES   (`NUM_SFU_LANES),
+        .ARBITER     ("R"),
+        .OUT_BUF     ((`SOCKET_SIZE > 1) ? 2 : 0)
+    ) om_arb (
+        .clk        (clk),
+        .reset      (om_arb_reset),
+        .bus_in_if  (per_core_om_bus_if),
+        .bus_out_if (om_bus_tmp_if)
+    );
+
+    `ASSIGN_VX_OM_BUS_IF (om_bus_if, om_bus_tmp_if[0]);
+
+`endif
+
+`ifdef EXT_TEX_ENABLE
+
+    VX_tex_bus_if #(
+        .NUM_LANES (`NUM_SFU_LANES),
+        .TAG_WIDTH (`TEX_REQ_TAG_WIDTH)
+    ) per_core_tex_bus_if[`SOCKET_SIZE]();
+
+    VX_tex_bus_if #(
+        .NUM_LANES (`NUM_SFU_LANES),
+        .TAG_WIDTH (`TEX_REQ_ARB1_TAG_WIDTH)
+    ) tex_bus_tmp_if[1]();
+
+    `RESET_RELAY (tex_arb_reset, reset);
+
+    VX_tex_arb #(
+        .NUM_INPUTS  (`SOCKET_SIZE),
+        .NUM_OUTPUTS (1),
+        .NUM_LANES   (`NUM_SFU_LANES),
+        .TAG_WIDTH   (`TEX_REQ_TAG_WIDTH),
+        .ARBITER     ("R"),
+        .OUT_BUF_REQ ((`SOCKET_SIZE > 1) ? 2 : 0)
+    ) tex_arb (
+        .clk        (clk),
+        .reset      (tex_arb_reset),
+        .bus_in_if  (per_core_tex_bus_if),
+        .bus_out_if (tex_bus_tmp_if)
+    );
+
+    `ASSIGN_VX_TEX_BUS_IF (tex_bus_if, tex_bus_tmp_if[0]);
+
+`endif
+
     ///////////////////////////////////////////////////////////////////////////
 
 `ifdef PERF_ENABLE
@@ -69,6 +172,15 @@ module VX_socket import VX_gpu_pkg::*; #(
         sysmem_perf_tmp = sysmem_perf;
         sysmem_perf_tmp.icache = icache_perf;
         sysmem_perf_tmp.dcache = dcache_perf;
+`ifdef EXT_TEX_ENABLE
+        sysmem_perf_tmp.tcache = mem_perf_if.tcache;
+`endif
+`ifdef EXT_RASTER_ENABLE
+        sysmem_perf_tmp.rcache = mem_perf_if.rcache;
+`endif
+`ifdef EXT_OM_ENABLE
+        sysmem_perf_tmp.ocache = mem_perf_if.ocache;
+`endif
     end
 `endif
 

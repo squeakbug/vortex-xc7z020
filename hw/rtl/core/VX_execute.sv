@@ -43,6 +43,27 @@ module VX_execute import VX_gpu_pkg::*; #(
     VX_branch_ctl_if.master branch_ctl_if [`NUM_ALU_BLOCKS],
     VX_warp_ctl_if.master   warp_ctl_if,
 
+`ifdef EXT_TEX_ENABLE
+    VX_tex_bus_if.master    tex_bus_if,
+`ifdef PERF_ENABLE
+    VX_tex_perf_if.slave    perf_tex_if,
+`endif
+`endif
+
+`ifdef EXT_RASTER_ENABLE
+    VX_raster_bus_if.slave  raster_bus_if,
+`ifdef PERF_ENABLE
+    VX_raster_perf_if.slave perf_raster_if,
+`endif
+`endif
+
+`ifdef EXT_OM_ENABLE
+    VX_om_bus_if.master     om_bus_if,
+`ifdef PERF_ENABLE
+    VX_om_perf_if.slave     perf_om_if,
+`endif
+`endif
+
     // commit interface
     VX_commit_csr_if.slave  commit_csr_if
 );
@@ -113,6 +134,28 @@ module VX_execute import VX_gpu_pkg::*; #(
     `ifdef EXT_F_ENABLE
         .fpu_csr_if     (fpu_csr_if),
     `endif
+
+    `ifdef EXT_TEX_ENABLE
+        .tex_bus_if     (tex_bus_if),
+    `ifdef PERF_ENABLE
+        .perf_tex_if    (perf_tex_if),
+    `endif
+    `endif
+
+    `ifdef EXT_RASTER_ENABLE
+        .raster_bus_if  (raster_bus_if),
+    `ifdef PERF_ENABLE
+        .perf_raster_if (perf_raster_if),
+    `endif
+    `endif
+
+    `ifdef EXT_OM_ENABLE
+        .om_bus_if      (om_bus_if),
+    `ifdef PERF_ENABLE
+        .perf_om_if     (perf_om_if),
+    `endif
+    `endif
+
         .commit_csr_if  (commit_csr_if),
         .sched_csr_if   (sched_csr_if),
         .warp_ctl_if    (warp_ctl_if)

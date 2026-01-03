@@ -57,10 +57,10 @@ typedef void* vx_buffer_h;
 #define VX_ISA_EXT_L3CACHE          (1ull << (32+ISA_EXT_L3CACHE))
 #define VX_ISA_EXT_LMEM             (1ull << (32+ISA_EXT_LMEM))
 #define VX_ISA_EXT_ZICOND           (1ull << (32+ISA_EXT_ZICOND))
+#define VX_ISA_EXT_TCU              (1ull << (32+ISA_EXT_TCU))
 #define VX_ISA_EXT_TEX              (1ull << (32+ISA_EXT_TEX))
 #define VX_ISA_EXT_RASTER           (1ull << (32+ISA_EXT_RASTER))
 #define VX_ISA_EXT_OM               (1ull << (32+ISA_EXT_OM))
-#define VX_ISA_EXT_TCU              (1ull << (32+ISA_EXT_TCU))
 
 // ready wait timeout
 #define VX_MAX_TIMEOUT              (24*60*60*1000)   // 24 Hr

@@ -22,6 +22,7 @@
 #include <assert.h>
 #include <util.h>
 #include <rvfloats.h>
+#include <cocogfx/include/fixed.hpp>
 #include "emulator.h"
 #include "instr.h"
 #include "core.h"
@@ -1466,6 +1467,39 @@ instr_trace_t* Emulator::execute(const Instr &instr, uint32_t wid) {
       }
     }
   #endif // EXT_TCU_ENABLE
+  #ifdef EXT_RASTER_ENABLE
+    ,[&](RasterType raster_type) {
+      switch (raster_type) {
+      case RasterType::RASTER: {
+        
+      } break;
+      default:
+        std::abort();
+      }
+    }
+  #endif // EXT_RASTER_ENABLE
+  #ifdef EXT_TEX_ENABLE
+    ,[&](TexType tex_type) {
+      switch (tex_type) {
+      case TexType::TEX: {
+        
+      } break;
+      default:
+        std::abort();
+      }
+    }
+  #endif // EXT_OM_ENABLE
+  #ifdef EXT_OM_ENABLE
+    ,[&](OmType om_type) {
+      switch (om_type) {
+      case OmType::OM: {
+        
+      } break;
+      default:
+        std::abort();
+      }
+    }
+  #endif // EXT_OM_ENABLE
   );
 
   if (rd_write) {

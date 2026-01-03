@@ -39,7 +39,17 @@ public:
          uint32_t socket_id,
          Cluster* cluster,
          const Arch &arch,
-         const DCRS &dcrs);
+         const DCRS &dcrs
+#ifdef EXT_RASTER_ENABLE
+         , const std::vector<RasterUnit::Ptr>& raster_units
+#endif
+#ifdef EXT_TEX_ENABLE
+          , const std::vector<TexUnit::Ptr>& tex_units
+#endif
+#ifdef EXT_OM_ENABLE
+          , const std::vector<OMUnit::Ptr>& om_units
+#endif
+  );
 
   ~Socket();
 

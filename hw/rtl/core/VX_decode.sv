@@ -504,16 +504,19 @@ module VX_decode import VX_gpu_pkg::*; #(
                             default:;
                         endcase
                     end
-                    7'h01: begin // VOTE, SHFL
-                        ex_type = EX_ALU;
-                        op_args.alu.xtype = ALU_TYPE_OTHER;
+                    7'h01: begin // VOTE, SHFL, RASTER
                         use_rd  = 1;
-                        `USED_IREG (rd);
-                        `USED_IREG (rs1);
                         if (funct3[2]) begin
+                            ex_type = EX_ALU;
+                            op_type = INST_OP_BITS'(funct3);
+                            op_args.alu.xtype = ALU_TYPE_OTHER;
+                            `USED_IREG (rs1);
                             `USED_IREG (rs2);
+                        end else begin
+                            ex_type = EX_SFU;
+                            op_type = INST_OP_BITS'(INST_SFU_RASTER);
                         end
-                        op_type = INST_OP_BITS'(funct3);
+                        `USED_IREG (rd);
                     end
                 `ifdef EXT_TCU_ENABLE
                     7'h02: begin
@@ -534,6 +537,37 @@ module VX_decode import VX_gpu_pkg::*; #(
                         endcase
                     end
                 `endif
+                    default:;
+                endcase
+            end
+            INST_EXT2: begin
+                case (funct3)
+                `ifdef EXT_TEX_ENABLE
+                    3'h0: begin // TEX
+                        ex_type = `EX_SFU;
+                        op_type = `INST_OP_BITS'(`INST_SFU_TEX);
+                        op_args.tex.stage = `VX_TEX_STAGE_BITS'(func2);
+                        use_rd  = 1;
+                        `USED_IREG (rd);
+                        `USED_IREG (rs1);
+                        `USED_IREG (rs2);
+                        `USED_IREG (rs3);
+                    end
+                `endif
+                    3'h1: begin
+                        case (funct2)
+                        `ifdef EXT_OM_ENABLE
+                            2'h0: begin // OM
+                                ex_type = `EX_SFU;
+                                op_type = `INST_OP_BITS'(`INST_SFU_OM);
+                                `USED_IREG (rs1);
+                                `USED_IREG (rs2);
+                                `USED_IREG (rs3);
+                            end
+                        `endif
+                            default:;
+                        endcase
+                    end
                     default:;
                 endcase
             end

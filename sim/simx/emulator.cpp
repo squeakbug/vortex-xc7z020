@@ -35,12 +35,16 @@ warp_t::warp_t(uint32_t num_threads)
   , freg_file(MAX_NUM_REGS, std::vector<uint64_t>(num_threads))
   , tmask(num_threads)
   , PC(0)
+  , csrs(num_threads)
   , uuid(0)
+  , num_threads(num_threads)
 {}
 
 void warp_t::reset(uint64_t startup_addr) {
   this->tmask.reset();
   this->PC = startup_addr;
+  // In original skybox there's no such reset
+  this->csrs = std::vector<CSRs>(num_threads);
   this->uuid = 0;
   this->fcsr = 0;
 
@@ -78,6 +82,15 @@ Emulator::Emulator(const Arch &arch, const DCRS &dcrs, Core* core)
     , core_(core)
     , warps_(arch.num_warps(), arch.num_threads())
     , barriers_(arch.num_barriers(), 0)
+#ifdef EXT_RASTER_ENABLE
+    , raster_units_(core->raster_units())
+#endif
+#ifdef EXT_TEX_ENABLE
+    , tex_units_(core->tex_units())
+#endif
+#ifdef EXT_OM_ENABLE
+    , om_units_(core->om_units())
+#endif
     , ipdom_size_(arch.num_threads()-1)
   #ifdef EXT_TCU_ENABLE
     , tensor_unit_(core->tensor_unit())
@@ -112,6 +125,27 @@ void Emulator::reset() {
   for (auto& barrier : barriers_) {
     barrier.reset();
   }
+
+#ifdef EXT_RASTER_ENABLE
+  for (auto& raster_unit : raster_units_) {
+    raster_unit->reset();
+  }
+  raster_idx_ = 0;
+#endif
+
+#ifdef EXT_TEX_ENABLE
+  for (auto& tex_unit : tex_units_) {
+    tex_unit->reset();
+  }
+  tex_idx_ = 0;
+#endif
+
+#ifdef EXT_OM_ENABLE
+  for (auto& om_unit : om_units_) {
+    om_unit->reset();
+  }
+  om_idx_ = 0;
+#endif
 
 #ifdef EXT_V_ENABLE
   vec_unit_->reset();
@@ -553,12 +587,83 @@ Word Emulator::get_csr(uint32_t addr, uint32_t wid, uint32_t tid) {
         CSR_READ_64(VX_CSR_MPM_LMEM_BANK_ST, lmem_perf.bank_stalls);
         }
       } break;
+#ifdef EXT_RASTER_ENABLE
+      case VX_DCR_MPM_CLASS_RASTER: {
+        RasterUnit::PerfStats raster_perf_stats;
+        for (auto raster_unit : raster_units_) {
+          raster_perf_stats += raster_unit->perf_stats();
+        }
+        auto cluster_perf = core_->socket()->cluster()->perf_stats();
+        switch (addr) {
+        CSR_READ_64(VX_CSR_MPM_RASTER_READS, raster_perf_stats.reads);
+        CSR_READ_64(VX_CSR_MPM_RASTER_LAT, raster_perf_stats.latency);
+        CSR_READ_64(VX_CSR_MPM_RASTER_ST, raster_perf_stats.stalls);
+
+        CSR_READ_64(VX_CSR_MPM_RCACHE_READS, cluster_perf.rcache.reads);
+        CSR_READ_64(VX_CSR_MPM_RCACHE_MISS_R, cluster_perf.rcache.read_misses);
+        CSR_READ_64(VX_CSR_MPM_RCACHE_BANK_ST, cluster_perf.rcache.bank_stalls);
+        CSR_READ_64(VX_CSR_MPM_RCACHE_MSHR_ST, cluster_perf.rcache.mshr_stalls);
+        default:
+          return 0;
+        }
+      } break;
+#endif
+#ifdef EXT_TEX_ENABLE
+      case VX_DCR_MPM_CLASS_TEX: {
+        TexUnit::PerfStats tex_perf_stats;
+        for (auto tex_unit : tex_units_) {
+          tex_perf_stats += tex_unit->perf_stats();
+        }
+        auto cluster_perf = core_->socket()->cluster()->perf_stats();
+        switch (addr) {
+        CSR_READ_64(VX_CSR_MPM_TEX_READS, tex_perf_stats.reads);
+        CSR_READ_64(VX_CSR_MPM_TEX_LAT, tex_perf_stats.latency);
+        CSR_READ_64(VX_CSR_MPM_TEX_ST, tex_perf_stats.stalls);
+
+        CSR_READ_64(VX_CSR_MPM_TCACHE_READS, cluster_perf.tcache.reads);
+        CSR_READ_64(VX_CSR_MPM_TCACHE_MISS_R, cluster_perf.tcache.read_misses);
+        CSR_READ_64(VX_CSR_MPM_TCACHE_BANK_ST, cluster_perf.tcache.bank_stalls);
+        CSR_READ_64(VX_CSR_MPM_TCACHE_MSHR_ST, cluster_perf.tcache.mshr_stalls);
+        }
+      } break;
+#endif
+#ifdef EXT_OM_ENABLE
+      case VX_DCR_MPM_CLASS_OM: {
+        OMUnit::PerfStats om_perf_stats;
+        for (auto om_unit : om_units_) {
+          om_perf_stats += om_unit->perf_stats();
+        }
+        auto cluster_perf = core_->socket()->cluster()->perf_stats();
+        switch (addr) {
+        CSR_READ_64(VX_CSR_MPM_OM_READS, om_perf_stats.reads);
+        CSR_READ_64(VX_CSR_MPM_OM_WRITES, om_perf_stats.writes);
+        CSR_READ_64(VX_CSR_MPM_OM_LAT, om_perf_stats.latency);
+        CSR_READ_64(VX_CSR_MPM_OM_ST, om_perf_stats.stalls);
+
+        CSR_READ_64(VX_CSR_MPM_OCACHE_READS, cluster_perf.ocache.reads);
+        CSR_READ_64(VX_CSR_MPM_OCACHE_WRITES, cluster_perf.ocache.writes);
+        CSR_READ_64(VX_CSR_MPM_OCACHE_MISS_R, cluster_perf.ocache.read_misses);
+        CSR_READ_64(VX_CSR_MPM_OCACHE_MISS_W, cluster_perf.ocache.write_misses);
+        CSR_READ_64(VX_CSR_MPM_OCACHE_BANK_ST, cluster_perf.ocache.bank_stalls);
+        CSR_READ_64(VX_CSR_MPM_OCACHE_MSHR_ST, cluster_perf.ocache.mshr_stalls);
+        default:
+          return 0;
+        }
+      } break;
+#endif
       default:
         std::cerr << "Error: invalid MPM CLASS: value=" << perf_class << std::endl;
         std::abort();
         break;
       }
-    } else {
+    } else 
+  #ifdef EXT_RASTER_ENABLE
+    if (addr >= VX_CSR_RASTER_BEGIN
+     && addr < VX_CSR_RASTER_END) {
+      return warps_.at(wid).csrs.at(tid).at(addr);
+    } else
+  #endif
+    {
       std::cerr << "Error: invalid CSR read addr=0x"<< std::hex << addr << std::dec << std::endl;
       std::abort();
     }

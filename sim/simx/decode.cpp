@@ -473,6 +473,33 @@ static op_string_t op_string(const Instr &instr) {
       return op_string(tcu_type, tpuArgs);
     }
   #endif // EXT_TCU_ENABLE
+  #ifdef EXT_RASTER_ENABLE
+    ,[&](RasterType raster_type)-> op_string_t {
+      switch (raster_type) {
+      case RasterType::RASTER:    return {"RASTER", ""};
+      default:
+        std::abort();
+      }
+    }
+  #endif // EXT_RASTER_ENABLE
+  #ifdef EXT_TEX_ENABLE
+    ,[&](TexType tex_type)-> op_string_t {
+      switch (tex_type) {
+      case TexType::TEX:    return {"TEX", ""};
+      default:
+        std::abort();
+      }
+    }
+  #endif // EXT_TEX_ENABLE
+  #ifdef EXT_OM_ENABLE
+    ,[&](OmType om_type)-> op_string_t {
+      switch (om_type) {
+      case OmType::OM:    return {"OM", ""};
+      default:
+        std::abort();
+      }
+    }
+  #endif // EXT_OM_ENABLE
  );
  return {"", ""};
 }
@@ -1112,6 +1139,39 @@ void Emulator::decode(uint32_t code, uint32_t wid, uint64_t uuid) {
             }
           }
         }
+      } break;
+      default:
+        std::abort();
+      }
+    } break;
+  #endif
+  #ifdef EXT_RASTER_ENABLE
+    case 3: {
+      auto instr = std::allocate_shared<Instr>(instr_pool_, uuid, FUType::RASTER);
+      instr->setOpType(RasterType::RASTER);
+      ibuffer.push_back(instr);
+    } break;
+  #endif
+    default:
+      std::abort();
+    }
+  } break;
+  case Opcode::EXT2: {
+    switch (funct3) {
+  #ifdef EXT_TEX_ENABLE
+    case 0: {
+      auto instr = std::allocate_shared<Instr>(instr_pool_, uuid, FUType::TEX);
+      instr->setOpType(TexType::TEX);
+      ibuffer.push_back(instr);
+    } break;
+  #endif
+  #ifdef EXT_OM_ENABLE
+    case 1: {
+      switch (funct2) {
+      case 0: {
+        auto instr = std::allocate_shared<Instr>(instr_pool_, uuid, FUType::OM);
+        instr->setOpType(OmType::OM);
+        ibuffer.push_back(instr);
       } break;
       default:
         std::abort();

@@ -20,7 +20,17 @@ Socket::Socket(const SimContext& ctx,
                 uint32_t socket_id,
                 Cluster* cluster,
                 const Arch &arch,
-                const DCRS &dcrs)
+                const DCRS &dcrs
+#ifdef EXT_RASTER_ENABLE
+                , const std::vector<RasterUnit::Ptr>& raster_units
+#endif
+#ifdef EXT_TEX_ENABLE
+                , const std::vector<TexUnit::Ptr>& tex_units
+#endif
+#ifdef EXT_OM_ENABLE
+                , const std::vector<OMUnit::Ptr>& om_units
+#endif
+  )
   : SimObject(ctx, StrFormat("socket%d", socket_id))
   , mem_req_ports(L1_MEM_PORTS, this)
   , mem_rsp_ports(L1_MEM_PORTS, this)
@@ -98,7 +108,17 @@ Socket::Socket(const SimContext& ctx,
   // create cores
   for (uint32_t i = 0; i < cores_per_socket; ++i) {
     uint32_t core_id = socket_id * cores_per_socket + i;
-    cores_.at(i) = Core::Create(core_id, this, arch, dcrs);
+    cores_.at(i) = Core::Create(core_id, this, arch, dcrs
+#ifdef EXT_RASTER_ENABLE
+      , raster_units
+#endif
+#ifdef EXT_TEX_ENABLE
+      , tex_units
+#endif
+#ifdef EXT_OM_ENABLE
+      , om_units
+#endif
+    );
   }
 
   // connect cores to caches

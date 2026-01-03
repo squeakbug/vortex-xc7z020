@@ -126,12 +126,58 @@ module VX_core_top import VX_gpu_pkg::*; #(
     assign icache_bus_if.rsp_data.data = icache_rsp_data;
     assign icache_rsp_ready = icache_bus_if.rsp_ready;
 
+`ifdef EXT_RASTER_ENABLE
+
+    VX_raster_bus_if #(
+        .NUM_LANES (`NUM_SFU_LANES)
+    ) raster_bus_if();
+
+`ifdef PERF_ENABLE
+    VX_raster_perf_if perf_raster_if();
+`endif
+
+`endif
+
+`ifdef EXT_TEX_ENABLE
+
+    VX_tex_bus_if #(
+        .NUM_LANES (`NUM_SFU_LANES),
+        .TAG_WIDTH (`TEX_REQ_ARB1_TAG_WIDTH)
+    ) tex_bus_if();
+
+`ifdef PERF_ENABLE
+    VX_tex_perf_if perf_tex_if();
+`endif
+
+`endif
+
+`ifdef EXT_OM_ENABLE
+
+    VX_om_bus_if #(
+        .NUM_LANES (`NUM_SFU_LANES)
+    ) om_bus_if();
+
+`ifdef PERF_ENABLE
+    VX_om_perf_if perf_om_if();
+`endif
+
+`endif
+
 `ifdef PERF_ENABLE
     sysmem_perf_t mem_perf;
     assign mem_perf.icache  = '0;
     assign mem_perf.dcache  = '0;
     assign mem_perf.l2cache = '0;
     assign mem_perf.l3cache = '0;
+`ifdef EXT_TEX_ENABLE
+    assign mem_perf.tcache  = '0;
+`endif
+`ifdef EXT_RASTER_ENABLE
+    assign mem_perf.rcache  = '0;
+`endif
+`ifdef EXT_OM_ENABLE
+    assign mem_perf.ocache  = '0;
+`endif
     assign mem_perf.lmem    = '0;
     assign mem_perf.mem     = '0;
 `endif
@@ -160,6 +206,27 @@ module VX_core_top import VX_gpu_pkg::*; #(
         .dcache_bus_if  (dcache_bus_if),
 
         .icache_bus_if  (icache_bus_if),
+
+    `ifdef EXT_TEX_ENABLE
+    `ifdef PERF_ENABLE
+        .perf_tex_if    (perf_tex_if),
+    `endif
+        .tex_bus_if     (tex_bus_if),
+    `endif
+
+    `ifdef EXT_RASTER_ENABLE
+    `ifdef PERF_ENABLE
+        .perf_raster_if (perf_raster_if),
+    `endif
+        .raster_bus_if  (raster_bus_if),
+    `endif
+    
+    `ifdef EXT_OM_ENABLE
+    `ifdef PERF_ENABLE
+        .perf_om_if     (perf_om_if),
+    `endif
+        .om_bus_if      (om_bus_if),
+    `endif
 
     `ifdef GBAR_ENABLE
         .gbar_bus_if    (gbar_bus_if),

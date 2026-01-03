@@ -64,6 +64,15 @@ public:
   #ifdef EXT_TCU_ENABLE
     uint64_t scrb_tcu;
   #endif
+  #ifdef EXT_RASTER_ENABLE
+    uint64_t scrb_raster;
+  #endif
+  #ifdef EXT_TEX_ENABLE
+    uint64_t scrb_tex;
+  #endif
+  #ifdef EXT_OM_ENABLE
+    uint64_t scrb_om;
+  #endif
     uint64_t ifetches;
     uint64_t loads;
     uint64_t stores;
@@ -91,6 +100,15 @@ public:
     #ifdef EXT_TCU_ENABLE
       , scrb_tcu(0)
     #endif
+    #ifdef EXT_RASTER_ENABLE
+      , scrb_raster(0)
+    #endif
+    #ifdef EXT_TEX_ENABLE
+      , scrb_tex(0)
+    #endif
+    #ifdef EXT_OM_ENABLE
+      , scrb_om(0)
+    #endif
       , ifetches(0)
       , loads(0)
       , stores(0)
@@ -110,6 +128,15 @@ public:
        Socket* socket,
        const Arch &arch,
        const DCRS &dcrs
+    #ifdef EXT_RASTER_ENABLE
+       , const std::vector<RasterUnit::Ptr>& raster_units
+    #endif
+    #ifdef EXT_TEX_ENABLE
+       , const std::vector<TexUnit::Ptr>& tex_units
+    #endif
+    #ifdef EXT_OM_ENABLE
+       , const std::vector<OMUnit::Ptr>& om_units
+    #endif
   );
 
   ~Core();
@@ -171,6 +198,24 @@ public:
   }
 #endif
 
+#ifdef EXT_RASTER_ENABLE
+  std::vector<RasterUnit::Ptr>& raster_units() {
+    return raster_units_;
+  }
+#endif
+
+#ifdef EXT_TEX_ENABLE
+  std::vector<TexUnit::Ptr>& tex_units() {
+    return tex_units_;
+  }
+#endif
+
+#ifdef EXT_OM_ENABLE
+  std::vector<OMUnit::Ptr>& om_units() {
+    return om_units_;
+  }
+#endif
+
   auto& trace_pool() {
     return trace_pool_;
   }
@@ -225,6 +270,16 @@ private:
 
   uint32_t commit_exe_;
   std::vector<Arbiter> ibuffer_arbs_;
+
+#ifdef EXT_RASTER_ENABLE
+  std::vector<RasterUnit::Ptr> raster_units_;
+#endif
+#ifdef EXT_TEX_ENABLE
+  std::vector<TexUnit::Ptr> tex_units_;
+#endif
+#ifdef EXT_OM_ENABLE
+  std::vector<OMUnit::Ptr> om_units_;
+#endif
 
   PoolAllocator<instr_trace_t, 64> trace_pool_;
 

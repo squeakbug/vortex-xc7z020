@@ -19,6 +19,16 @@
 #include <stack>
 #include <mem.h>
 #include "types.h"
+#ifdef EXT_RASTER_ENABLE
+#include "raster_unit.h"
+#endif
+#ifdef EXT_TEX_ENABLE
+#include "tex_unit.h"
+#endif
+#ifdef EXT_OM_ENABLE
+#include "om_unit.h"
+#endif
+#include "types.h"
 #include "instr.h"
 #ifdef EXT_TCU_ENABLE
 #include "tensor_unit.h"
@@ -59,6 +69,8 @@ struct warp_t {
   ThreadMask                        tmask;
   Word                              PC;
   Byte                              fcsr;
+  std::vector<CSRs>                 csrs;
+  uint32_t                          num_threads;
   uint32_t                          uuid;
 
   warp_t(uint32_t num_threads);
@@ -161,6 +173,19 @@ private:
 
 #ifdef EXT_V_ENABLE
   VecUnit::Ptr vec_unit_;
+#endif
+
+#ifdef EXT_RASTER_ENABLE
+  std::vector<RasterUnit::Ptr> raster_units_;
+  uint32_t    raster_idx_;
+#endif
+#ifdef EXT_TEX_ENABLE
+  std::vector<TexUnit::Ptr> tex_units_;
+  uint32_t    tex_idx_;
+#endif
+#ifdef EXT_OM_ENABLE
+  uint32_t    om_idx_;
+  std::vector<OMUnit::Ptr> om_units_;
 #endif
 
   PoolAllocator<Instr, 64> instr_pool_;

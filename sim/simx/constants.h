@@ -46,8 +46,14 @@ inline constexpr uint32_t DCACHE_NUM_REQS	= (NUM_LSU_BLOCKS * DCACHE_CHANNELS);
 
 inline constexpr uint32_t NUM_SOCKETS     = UP(NUM_CORES / SOCKET_SIZE);
 
+// TODO: duplicates value (localparam), defined in VX_gpu_pks.sv
 inline constexpr uint32_t L2_NUM_REQS     = NUM_SOCKETS * L1_MEM_PORTS;
 inline constexpr uint32_t L3_NUM_REQS     = NUM_CLUSTERS * L2_MEM_PORTS;
+
+// TODO: duplicates value (localparam), defined in VX_gpu_pks.sv
+inline constexpr uint32_t RCACHE_NUM_REQS = RCACHE_NUM_BANKS;
+inline constexpr uint32_t TCACHE_NUM_REQS = TCACHE_NUM_BANKS;
+inline constexpr uint32_t OCACHE_NUM_REQS = OCACHE_NUM_BANKS;
 
 inline constexpr uint32_t PER_ISSUE_WARPS = NUM_WARPS / ISSUE_WIDTH;
 inline constexpr uint32_t ISSUE_WIS_BITS  = log2ceil(PER_ISSUE_WARPS);

@@ -122,8 +122,11 @@ package VX_gpu_pkg;
 
 	localparam SFU_CSRS = 0;
 	localparam SFU_WCTL = 1;
+    localparam SFU_TEX = (SFU_WCTL + `EXT_TEX_ENABLED);
+    localparam SFU_OM = (SFU_TEX + `EXT_OM_ENABLED);
+    localparam SFU_RASTER = (SFU_OM + `EXT_RASTER_ENABLED);
 
-	localparam NUM_SFU_UNITS = (2);
+	localparam NUM_SFU_UNITS = (2 + `EXT_TEX_ENABLED + `EXT_OM_ENABLED + `EXT_RASTER_ENABLED);
 	localparam SFU_BITS = `CLOG2(NUM_SFU_UNITS);
 	localparam SFU_WIDTH = `UP(SFU_BITS);
 
@@ -380,6 +383,9 @@ package VX_gpu_pkg;
     localparam INST_SFU_CSRRW =  4'h6;
     localparam INST_SFU_CSRRS =  4'h7;
     localparam INST_SFU_CSRRC =  4'h8;
+    localparam INST_SFU_TEX =    4'h9;
+    localparam INST_SFU_OM =     4'hA;
+    localparam INST_SFU_RASTER = 4'hB;
     localparam INST_SFU_BITS =   4;
 
     function automatic logic [3:0] inst_sfu_csr(input logic [2:0] funct3);
@@ -541,6 +547,13 @@ package VX_gpu_pkg;
     `PACKAGE_ASSERT($bits(tcu_args_t) == INST_ARGS_BITS)
 `endif
 
+`ifdef EXT_TEX_ENABLE
+    typedef struct packed {
+        logic [($bits(alu_args_t)-`VX_TEX_STAGE_BITS)-1:0] __padding;
+        logic [`VX_TEX_STAGE_BITS-1:0] stage;
+    } tex_args_t;
+`endif
+
     typedef union packed {
         alu_args_t  alu;
         fpu_args_t  fpu;
@@ -549,6 +562,9 @@ package VX_gpu_pkg;
         wctl_args_t wctl;
     `ifdef EXT_TCU_ENABLE
         tcu_args_t  tcu;
+    `endif
+    `ifdef EXT_TEX_ENABLE
+        tex_args_t  tex;
     `endif
     } op_args_t;
     `PACKAGE_ASSERT($bits(op_args_t) == INST_ARGS_BITS)
@@ -735,6 +751,15 @@ package VX_gpu_pkg;
         cache_perf_t dcache;
         cache_perf_t l2cache;
         cache_perf_t l3cache;
+`ifdef EXT_TEX_ENABLE
+        cache_perf_t tcache;
+`endif
+`ifdef EXT_RASTER_ENABLE
+        cache_perf_t rcache;
+`endif
+`ifdef EXT_OM_ENABLE
+        cache_perf_t ocache;
+`endif
         lmem_perf_t  lmem;
         coalescer_perf_t coalescer;
         mem_perf_t   mem;
@@ -875,6 +900,147 @@ package VX_gpu_pkg;
     localparam VX_MEM_DATA_WIDTH =      (`L3_LINE_SIZE * 8);
     localparam VX_MEM_TAG_WIDTH =       L3_MEM_TAG_WIDTH;
 
+    ////////////////////////// Tcache Parameters //////////////////////////////
+
+    // Word size in bytes
+    localparam TCACHE_WORD_SIZE	    = 4;
+    localparam TCACHE_ADDR_WIDTH	= (`MEM_ADDR_WIDTH - `CLOG2(TCACHE_WORD_SIZE));
+
+    // Block size in bytes
+    localparam TCACHE_LINE_SIZE	    = `L1_LINE_SIZE;
+
+    // Input request size
+    localparam TCACHE_NUM_REQS	    = `TCACHE_NUM_BANKS;
+
+    // Memory request size
+    localparam TEX_MEM_REQS	        = (4 * `NUM_SFU_LANES);
+
+    // Batch select bits
+    localparam TCACHE_BATCH_SEL_BITS =`ARB_SEL_BITS(TEX_MEM_REQS, TCACHE_NUM_REQS);
+
+    // Core request tag Id bits
+    localparam TCACHE_TAG_ID_BITS	= (`CLOG2(`TEX_MEM_QUEUE_SIZE) + TCACHE_BATCH_SEL_BITS);
+
+    // Core request tag bits
+    localparam TCACHE_TAG_WIDTH	    = (UUID_WIDTH + TCACHE_TAG_ID_BITS);
+
+    // Memory request data bits
+    localparam TCACHE_MEM_DATA_WIDTH = (TCACHE_LINE_SIZE * 8);
+
+    // Memory ports count
+    localparam TCACHE_MEM_PORTS = 1;
+
+    // Memory request tag bits
+`ifdef TCACHE_ENABLE
+    localparam TCACHE_MEM_TAG_WIDTH = `CACHE_CLUSTER_MEM_TAG_WIDTH(
+        `TCACHE_MSHR_SIZE, `TCACHE_NUM_BANKS, TCACHE_MEM_PORTS, `NUM_TCACHES, UUID_WIDTH
+    );
+`else
+    localparam TCACHE_MEM_TAG_WIDTH = `CACHE_CLUSTER_BYPASS_MEM_TAG_WIDTH(
+        TCACHE_NUM_REQS,
+        TCACHE_MEM_PORTS,
+        TCACHE_LINE_SIZE,
+        TCACHE_WORD_SIZE,
+        TCACHE_TAG_WIDTH,
+        `NUM_TEX_UNITS,
+        `NUM_TCACHES
+    );
+`endif
+
+    ////////////////////////// Rcache Parameters //////////////////////////////
+
+    // Word size in bytes
+    localparam RCACHE_WORD_SIZE	    = 4;
+    localparam RCACHE_ADDR_WIDTH	= (`MEM_ADDR_WIDTH - `CLOG2(RCACHE_WORD_SIZE));
+
+    // Block size in bytes
+    localparam RCACHE_LINE_SIZE	    = `L1_LINE_SIZE;
+
+    // Input request size
+    localparam RCACHE_NUM_REQS	    = `RCACHE_NUM_BANKS;
+
+    // Raster memory request size
+    localparam RASTER_MEM_REQS	    = 9;
+
+    // Batch select bits
+    localparam RCACHE_BATCH_SEL_BITS = `ARB_SEL_BITS(RASTER_MEM_REQS, RCACHE_NUM_REQS);
+
+    // Core request tag Id bits
+    localparam RCACHE_TAG_ID_BITS	= (`CLOG2(`RASTER_MEM_QUEUE_SIZE) + RCACHE_BATCH_SEL_BITS);
+
+    // Core request tag bits
+    localparam RCACHE_TAG_WIDTH	    = RCACHE_TAG_ID_BITS;
+
+    // Memory request data bits
+    localparam RCACHE_MEM_DATA_WIDTH= (RCACHE_LINE_SIZE * 8);
+
+    // Memory ports count
+    localparam RCACHE_MEM_PORTS = 1;
+
+    // Memory request tag bits
+`ifdef RCACHE_ENABLE
+    localparam RCACHE_MEM_TAG_WIDTH	= `CACHE_CLUSTER_MEM_TAG_WIDTH(
+        `RCACHE_MSHR_SIZE, `RCACHE_NUM_BANKS, RCACHE_MEM_PORTS, `NUM_RCACHES, UUID_WIDTH
+    );
+`else
+    localparam RCACHE_MEM_TAG_WIDTH	= `CACHE_CLUSTER_BYPASS_MEM_TAG_WIDTH(
+        RCACHE_NUM_REQS,
+        RCACHE_MEM_PORTS,
+        RCACHE_LINE_SIZE,
+        RCACHE_WORD_SIZE,
+        RCACHE_TAG_WIDTH,
+        `NUM_RASTER_UNITS,
+        `NUM_RCACHES
+    );
+`endif
+
+    ////////////////////////// Ocache Parameters //////////////////////////////
+
+    // Word size in bytes
+    localparam OCACHE_WORD_SIZE	    = 4;
+    localparam OCACHE_ADDR_WIDTH	= (`MEM_ADDR_WIDTH - `CLOG2(OCACHE_WORD_SIZE));
+
+    // Block size in bytes
+    localparam OCACHE_LINE_SIZE	    = `L1_LINE_SIZE;
+
+    // Input request size
+    localparam OCACHE_NUM_REQS	    = `OCACHE_NUM_BANKS;
+
+    // OM memory request size
+    localparam OM_MEM_REQS	        = (2 * `NUM_SFU_LANES);
+
+    // Batch select bits
+    localparam OCACHE_BATCH_SEL_BITS = `ARB_SEL_BITS(OM_MEM_REQS, OCACHE_NUM_REQS);
+
+    // Core request tag Id bits
+    localparam OCACHE_TAG_ID_BITS	= (`CLOG2(`OM_MEM_QUEUE_SIZE) + OCACHE_BATCH_SEL_BITS);
+
+    // Core request tag bits
+    localparam OCACHE_TAG_WIDTH	    = (UUID_WIDTH + OCACHE_TAG_ID_BITS);
+
+    // Memory request data bits
+    localparam OCACHE_MEM_DATA_WIDTH = (OCACHE_LINE_SIZE * 8);
+
+    // Memory ports count
+    localparam OCACHE_MEM_PORTS = 1;
+
+    // Memory request tag bits
+`ifdef OCACHE_ENABLE
+    localparam OCACHE_MEM_TAG_WIDTH = `CACHE_CLUSTER_MEM_TAG_WIDTH(
+        `OCACHE_MSHR_SIZE, `OCACHE_NUM_BANKS, OCACHE_MEM_PORTS, `NUM_OCACHES, UUID_WIDTH
+    );
+`else
+    localparam OCACHE_MEM_TAG_WIDTH	= `CACHE_CLUSTER_BYPASS_MEM_TAG_WIDTH(
+        OCACHE_NUM_REQS,
+        OCACHE_MEM_PORTS,
+        OCACHE_LINE_SIZE,
+        OCACHE_WORD_SIZE,
+        OCACHE_TAG_WIDTH,
+        `NUM_OM_UNITS,
+        `NUM_OCACHES
+    );
+`endif
+
     ///////////////////////// Miscaellaneous functions ////////////////////////
 
     function automatic logic [SFU_WIDTH-1:0] op_to_sfu_type(
@@ -884,7 +1050,16 @@ package VX_gpu_pkg;
             INST_SFU_CSRRW,
             INST_SFU_CSRRS,
             INST_SFU_CSRRC: op_to_sfu_type = SFU_CSRS;
-            default: op_to_sfu_type = SFU_WCTL;
+`ifdef EXT_TEX_ENABLE
+            INST_SFU_TEX: op_to_sfu_type = SFU_TEX;
+`endif
+`ifdef EXT_OM_ENABLE
+            INST_SFU_OM: op_to_sfu_type = SFU_OM;
+`endif
+`ifdef EXT_RASTER_ENABLE
+            INST_SFU_RASTER: op_to_sfu_type = SFU_RASTER;
+`endif
+        default: op_to_sfu_type = SFU_WCTL;
         endcase
     endfunction
 

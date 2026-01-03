@@ -52,6 +52,8 @@ typedef std::bitset<MAX_NUM_REGS>    RegMask;
 typedef BitVector<Word>              ThreadMask;
 typedef std::bitset<MAX_NUM_WARPS>   WarpMask;
 
+typedef std::unordered_map<uint32_t, uint32_t> CSRs;
+
 ///////////////////////////////////////////////////////////////////////////////
 
 union reg_data_t {
@@ -133,6 +135,15 @@ enum class FUType {
 #ifdef EXT_TCU_ENABLE
   TCU,
 #endif
+#ifdef EXT_RASTER_ENABLE
+  RASTER,
+#endif
+#ifdef EXT_TEX_ENABLE
+  TEX,
+#endif
+#ifdef EXT_OM_ENABLE
+  OM,
+#endif
   Count
 };
 
@@ -147,6 +158,15 @@ inline std::ostream &operator<<(std::ostream &os, const FUType& type) {
 #endif
 #ifdef EXT_TCU_ENABLE
   case FUType::TCU: os << "TCU"; break;
+#endif
+#ifdef EXT_RASTER_ENABLE
+  case FUType::RASTER: os << "RASTER"; break;
+#endif
+#ifdef EXT_TEX_ENABLE
+  case FUType::TEX: os << "TEX"; break;
+#endif
+#ifdef EXT_OM_ENABLE
+  case FUType::OM: os << "OM"; break;
 #endif
   default:
     assert(false);
@@ -661,6 +681,51 @@ inline std::ostream &operator<<(std::ostream &os, const TcuType& type) {
 
 ///////////////////////////////////////////////////////////////////////////////
 
+enum class RasterType {
+  RASTER,
+};
+
+inline std::ostream &operator<<(std::ostream &os, const RasterType& type) {
+  switch (type) {
+  case RasterType::RASTER: os << "RASTER"; break;
+  default:
+    assert(false);
+  }
+  return os;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+enum class TexType {
+  TEX,
+};
+
+inline std::ostream &operator<<(std::ostream &os, const TexType& type) {
+  switch (type) {
+  case TexType::TEX: os << "TEX"; break;
+  default:
+    assert(false);
+  }
+  return os;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
+enum class OmType {
+  OM,
+};
+
+inline std::ostream &operator<<(std::ostream &os, const OmType& type) {
+  switch (type) {
+  case OmType::OM: os << "OM"; break;
+  default:
+    assert(false);
+  }
+  return os;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+
 using OpType = std::variant<
   AluType
 , BrType
@@ -679,6 +744,15 @@ using OpType = std::variant<
 #endif
 #ifdef EXT_TCU_ENABLE
 , TcuType
+#endif
+#ifdef EXT_RASTER_ENABLE
+, RasterType
+#endif
+#ifdef EXT_TEX_ENABLE
+, TexType
+#endif
+#ifdef EXT_OM_ENABLE
+, OmType
 #endif
 >;
 
